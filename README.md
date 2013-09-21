@@ -1,7 +1,10 @@
 redmine-gitolite
 ================
 
-This is a redmine plugin that manages git repositories using gitolite.
+This is a redmine plugin that manages git repositories using gitolite. The
+plugin has been tested to work with redmine 2.2.1 and 2.3.3 using gitolite2 and
+gitolite3. Once I get more of the bugs worked out I'll give more specific
+version numbers.
 
 Setup
 -----
