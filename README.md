@@ -6,7 +6,38 @@ This is a redmine plugin that manages git repositories using gitolite.
 Setup
 -----
 
-TODO
+Check out the latest version of the plugin and make sure to use the right name.
+
+    cd redmine/plugins
+    git clone https://github.com/CtrlC-Root/redmine-gitolite.git redmine_gitolite
+    cd redmine_gitolite
+
+At this point you should probably modify init.rb to suit your needs. Then run
+the migrate task.
+
+    cd ../..
+    RAILS_ENV=production rake redmine:plugins:migrate
+
+The redmine user needs to be able to ssh into the gitolite server. This usually
+involves setting up the ssh client for the redmine user.
+
+    mkdir .ssh
+    cp gitolite_admin_rsa .ssh/
+    cp gitolite_admin_rsa.pus .ssh/
+    chown -R redmine:redmine .ssh/
+
+    su - redmine
+    ssh gitolite_user@gitolite_server info
+
+The command should return something like this if you have just set up gitolite.
+
+    hello root, this is gitolite3@sandbox running gitolite3 3.5.2-1.el6 on git 1.7.1
+
+     R W    gitolite-admin
+     R W    testing
+
+TODO: install the hook, configure git settings for redmine user
+TODO: what about needing the ssh key to be named 'redmine'??
 
 History
 -------
