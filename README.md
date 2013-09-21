@@ -6,11 +6,12 @@ This is a redmine plugin that manages git repositories using gitolite.
 Setup
 -----
 
-Check out the latest version of the plugin and make sure to use the right name.
+Check out the latest version of the plugin and install the needed ruby gems.
 
     $ cd redmine/plugins
     $ git clone https://github.com/CtrlC-Root/redmine-gitolite.git redmine_gitolite
     $ cd redmine_gitolite
+    $ bundle install
 
 At this point you should probably modify init.rb to suit your needs. Then run
 the migrate task.
