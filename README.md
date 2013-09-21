@@ -3,8 +3,19 @@ redmine-gitolite
 
 This is a redmine plugin that manages git repositories using gitolite. The
 plugin has been tested to work with redmine 2.2.1 and 2.3.3 using gitolite2 and
-gitolite3. Once I get more of the bugs worked out I'll give more specific
-version numbers.
+gitolite3.
+
+Requirements
+------------
+
+This section is a work in progress and bound to change.
+
+ * rubygems(net-ssh)
+ * rubygems(gitolite) = 0.0.3.alpha
+ * rubygems(lockfile)
+ * redmine >= 2.0.0
+ * gitolite or gitolite3
+ * curl
 
 Setup
 -----
