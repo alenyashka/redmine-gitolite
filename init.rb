@@ -9,13 +9,12 @@ require_dependency 'gitolite/patches/repositories_helper_patch'
 
 Redmine::Plugin.register :redmine_gitolite do
   name 'Redmine Gitolite plugin'
-  author 'Arkadiusz Hiler, Joshua Hogendorn, Jan Schulz-Hofen, Kah Seng Tay, Jakob Skjerning'
-  description 'Enables Redmine to manage gitolite repositorie.'
-  version '0.0.2'
+  author 'Various Authors'
+  description 'Enables Redmine to manage gitolite repositories.'
+  version '0.1.0'
 
   requires_redmine :version_or_higher => '2.0.0'
-  url 'https://github.com/ivyl/redmine-gitolite/'
-  author_url 'http://ivyl.0xcafe.eu/'
+  url 'https://github.com/CtrlC-Root/redmine-gitolite/'
 
   settings({
     :partial => 'settings/redmine_gitolite',
