@@ -27,6 +27,7 @@ environment variable for eacy access.
     $ whoami
     root
     $ RM=/usr/share/redmine
+    $ RMP=$RM/plugins/redmine_gitolite
 
 Check out the latest version of the plugin and install the needed ruby gems.
 
@@ -76,7 +77,7 @@ copy the hook from the plugin's contrib folder to the appropriate place.
     root
 
     $ cd /var/lib/gitolite3/.gitolite/hooks/common
-    $ cp $RM/plugins/redmine_gitolite/contrib/post-receive .
+    $ cp $RMP/contrib/post-receive .
     $ chown gitolite3:gitolite3 post-receive
     $ chmod a+rx post-receive
 
@@ -98,6 +99,10 @@ Run the gitolite setup command.
     $ su - gitolite
     $ gitolite setup
     $ exit
+
+TODO: configure sudo
+
+    $ cp $RMP/contrib/sudo/redmine-gitolite.conf /etc/sudoers.d/
 
 TODO: what about needing the ssh key to be named 'redmine'??
 
