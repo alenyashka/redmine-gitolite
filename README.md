@@ -25,6 +25,7 @@ involves setting up the ssh client for the redmine user.
     $ mkdir .ssh
     $ cp gitolite_admin_rsa .ssh/id_rsa
     $ cp gitolite_admin_rsa.pub .ssh/id_rsa.pub
+    $ chmod go-rwx .ssh
     $ chown -R redmine:redmine .ssh/
 
 Make sure to log in to the gitolite server at least once as the redmine user to
