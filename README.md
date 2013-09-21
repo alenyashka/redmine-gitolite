@@ -8,26 +8,29 @@ Setup
 
 Check out the latest version of the plugin and make sure to use the right name.
 
-    cd redmine/plugins
-    git clone https://github.com/CtrlC-Root/redmine-gitolite.git redmine_gitolite
-    cd redmine_gitolite
+    $ cd redmine/plugins
+    $ git clone https://github.com/CtrlC-Root/redmine-gitolite.git redmine_gitolite
+    $ cd redmine_gitolite
 
 At this point you should probably modify init.rb to suit your needs. Then run
 the migrate task.
 
-    cd ../..
-    RAILS_ENV=production rake redmine:plugins:migrate
+    $ cd ../..
+    $ RAILS_ENV=production rake redmine:plugins:migrate
 
 The redmine user needs to be able to ssh into the gitolite server. This usually
 involves setting up the ssh client for the redmine user.
 
-    mkdir .ssh
-    cp gitolite_admin_rsa .ssh/
-    cp gitolite_admin_rsa.pus .ssh/
-    chown -R redmine:redmine .ssh/
+    $ mkdir .ssh
+    $ cp gitolite_admin_rsa .ssh/id_rsa
+    $ cp gitolite_admin_rsa.pub .ssh/id_rsa.pub
+    $ chown -R redmine:redmine .ssh/
 
-    su - redmine
-    ssh gitolite_user@gitolite_server info
+Make sure to log in to the gitolite server at least once as the redmine user to
+accept the server's host key.
+
+    $ su - redmine
+    $ ssh gitolite_user@gitolite_server info
 
 The command should return something like this if you have just set up gitolite.
 
