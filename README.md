@@ -6,9 +6,17 @@ This is a redmine plugin that manages git repositories using gitolite.
 Setup
 -----
 
+Start by logging in to the root user and store the redmine root folder in an
+environment variable for eacy access.
+
+    $ su
+    $ whoami
+    root
+    $ RM=/usr/share/redmine
+
 Check out the latest version of the plugin and install the needed ruby gems.
 
-    $ cd redmine/plugins
+    $ cd $RM/plugins
     $ git clone https://github.com/CtrlC-Root/redmine-gitolite.git redmine_gitolite
     $ cd redmine_gitolite
     $ bundle install
@@ -16,7 +24,7 @@ Check out the latest version of the plugin and install the needed ruby gems.
 At this point you should probably modify init.rb to suit your needs. Then run
 the migrate task.
 
-    $ cd ../..
+    $ cd $RM
     $ RAILS_ENV=production rake redmine:plugins:migrate
 
 The redmine user needs to be able to ssh into the gitolite server. This usually
@@ -41,7 +49,42 @@ The command should return something like this if you have just set up gitolite.
      R W    gitolite-admin
      R W    testing
 
-TODO: install the hook, configure git settings for redmine user
+Configure global git settings for the redmine user.
+
+    $ git config --global user.name "redmine"
+    $ git config --global user.email "redmine@example.com"
+
+Next we need to install the post-receive hook. Log out of the redmine user and
+copy the hook from the plugin's contrib folder to the appropriate place.
+
+    $ exit
+    $ whoami
+    root
+
+    $ cd /var/lib/gitolite3/.gitolite/hooks/common
+    $ cp $RM/plugins/redmine_gitolite/contrib/post-receive .
+    $ chown gitolite3:gitolite3 post-receive
+    $ chmod a+rx post-receive
+
+Modify the post-receive hook with the generate API key and the redmine server
+url. If your server is using https but you don't have a valid certificate
+(maybe this is a test server) then make sure to set the curl security flag to
+false. Go to the gitolite user's home folder and mofity the RC file to allow
+redmine to configure git settings through gitolite.conf.
+
+    $ cd /var/lib/gitolite3
+    $ cat .gitolite.rc
+    ...
+        # look for "git-config" in the documentation
+        GIT_CONFIG_KEYS =>  'hooks\.redmine_gitolite\..*',
+    ...
+
+Run the gitolite setup command.
+
+    $ su - gitolite
+    $ gitolite setup
+    $ exit
+
 TODO: what about needing the ssh key to be named 'redmine'??
 
 History
