@@ -11,12 +11,12 @@ class GitolitePublicKeysController < ApplicationController
       GitolitePublicKey::STATUS_ACTIVE
     elsif params[:status].blank?
         nil
-    else 
-      params[:status].to_i != 0
+    else
+	params[:status].to_i
     end
     
     scope = @user.gitolite_public_keys
-    scope = scope.where(active: true) if @status
+    scope = scope.scoped if @status
     @gitolite_public_keys = scope.all(:order => 'active DESC, created_at DESC')
 
 

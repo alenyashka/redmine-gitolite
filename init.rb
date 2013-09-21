@@ -6,6 +6,7 @@ require_dependency 'user'
 require_dependency 'gitolite_redmine'
 require_dependency 'gitolite/patches/repositories_controller_patch'
 require_dependency 'gitolite/patches/repositories_helper_patch'
+require_dependency 'gitolite/patches/git_patch'
 
 Redmine::Plugin.register :redmine_gitolite do
   name 'Redmine Gitolite plugin'
@@ -40,4 +41,6 @@ end
 User.send(:has_many, :gitolite_public_keys, :dependent => :destroy)
 
 # initialize observer
-ActiveRecord::Base.observers = ActiveRecord::Base.observers << GitoliteObserver
+ActiveRecord::Base.observers << :gitolite_observer
+
+RedmineApp::Application.config.after_initialize {}

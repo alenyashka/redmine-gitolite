@@ -6,9 +6,17 @@ class GitoliteHookController < ApplicationController
   skip_before_filter :verify_authenticity_token, :check_if_login_required
 
   def index
-    repository = find_repository
-    update_repository(repository)
-    repository.fetch_changesets
+    if get_identifier != "gitolite-admin"
+      repository = find_repository
+
+      # Fetch the changes from Gitolite
+      update_repository(repository)
+
+      # Fetch the new changesets into Redmine
+      repository.fetch_changesets
+
+    end
+
     render(:text => 'OK')
   end
 
@@ -28,9 +36,9 @@ class GitoliteHookController < ApplicationController
 
   def update_repository(repository)
     origin = Setting.plugin_redmine_gitolite['developerBaseUrls'].lines.first
-    origin = origin.gsub("%{name}", repository.project.identifier)
+    origin = origin.gsub("%{name}", repository.identifier)
     exec("git clone --mirror '#{origin}' '#{repository.url}'") if !File.directory?(repository.url)
-    exec("cd '#{repository.url}' && git remote update --prune")
+    exec("cd '#{repository.url}' && git fetch origin && git remote prune origin && git reset --soft FETCH_HEAD")
   end
 
   def get_identifier
@@ -49,9 +57,9 @@ class GitoliteHookController < ApplicationController
 
   def find_repository
     project = find_project
-    repository = project.repository
-    raise TypeError, "Project '#{project.to_s}' ('#{project.identifier}') has no repository" if repository.nil?
-    raise TypeError, "Repository for project '#{project.to_s}' ('#{project.identifier}') is not a Git repository" unless repository.is_a?(Repository::Git)
+    repository = project.repositories.select{|r| r.identifier == params[:repo_id]}.first
+    raise TypeError, "Project '#{project.to_s}' ('#{project.identifier}') has no repository identified by #{params[:repo_id]}" if repository.nil?
+    raise TypeError, "Repository identified by #{params[:repo_id]} for project '#{project.to_s}' ('#{project.identifier}') is not a Git repository" unless repository.is_a?(Repository::Git)
     return repository
   end
 end

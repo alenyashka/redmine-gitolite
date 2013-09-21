@@ -1,5 +1,4 @@
-# English strings go here for Rails i18n
-en:
+'pl':
   label_public_keys: Public keys
   label_public_key_new: New public key
   label_gitolite_url: Gitolite URL
@@ -7,12 +6,13 @@ en:
   label_base_path: Base path
   label_developer_base_urls: Developer base URL(s)
   label_read_only_base_urls: Read-only base URL(s)
-  note_gitolite_repository_branch_pattern: Developper repository branch pattern. Perl format
-  note_gitolite_repository_tag_pattern: Developper repository tag pattern. Perl format
-  field_public_key: Key
-  field_gitolite_repository_branch_pattern: Branch pattern
-  field_gitolite_repository_tag_pattern: Tag pattern
+  field_public_key: Key 
   notice_public_key_updated: Public key was successfully updated.
   notice_public_key_added: Public key was successfully added.
   
   label_key_cannot_be_changed_please_create_new_key: 'The key cannot be altered anymore. However, you can deactivate it and create a new one.'
+
+  activerecord:
+    errors:
+      messages:
+        'may not be changed': 'may not be changed'

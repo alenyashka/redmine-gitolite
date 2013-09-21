@@ -6,6 +6,7 @@ require 'tmpdir'
 
 module GitoliteRedmine
   class AdminHandler
+    include Redmine::I18n
     @@recursionCheck = false
     
     def update_user(user)
@@ -29,7 +30,7 @@ module GitoliteRedmine
       recursion_check do
         projects = (projects.is_a?(Array) ? projects : [projects])
 
-        if projects.detect{|p| p.repository.is_a?(Repository::Git)} && lock
+        if projects.detect{|p| p.repositories.detect{|r| r.is_a?(Repository::Git)}} && lock
           clone(Setting.plugin_redmine_gitolite['gitoliteUrl'], local_dir)
           
           projects.select{|p| p.repository.is_a?(Repository::Git)}.each do |project|
@@ -39,7 +40,7 @@ module GitoliteRedmine
 
           @repo.save
           @repo.apply
-          FileUtils.rm_rf local_dir
+          #FileUtils.rm_rf local_dir
           unlock
         end
       end
@@ -59,8 +60,8 @@ module GitoliteRedmine
     end
     
     def lock
-      lockfile_path = File.join(::Rails.root,"tmp",'redmine_gitolite_lock')
-      @lockfile = File.new(lockfile_path, File::CREAT|File::RDONLY)
+      lockfile_path = File.join(Rails.root,"tmp",'redmine_gitolite_lock')
+      @lockfile = File.new(lockfile_path, File::CREAT|File::RDWR)
       retries = 5
       while (retries -= 1) > 0
         return @lockfile if @lockfile.flock(File::LOCK_EX|File::LOCK_NB)
@@ -75,16 +76,20 @@ module GitoliteRedmine
     
     def handle_project(project)
       users = project.member_principals.map(&:user).compact.uniq
+      proj_name = project.identifier.to_s
       
-      name = project.identifier.to_s
-      conf = @repo.config.repos[name]
+      project.repositories.select{|r| r.is_a?(Repository::Git)}.each do |repository|
+        name = repository.identifier.to_s
+        conf = @repo.config.repos[name]
       
-      unless conf
-        conf = Gitolite::Config::Repo.new(name)
-        @repo.config.add_repo(conf)
+        unless conf
+          conf = Gitolite::Config::Repo.new(name)
+          conf.set_git_config("hooks.redmine_gitolite.projectid", proj_name)
+          @repo.config.add_repo(conf)
+        end
+      
+        conf.permissions = build_permissions(users, project)
       end
-      
-      conf.permissions = build_permissions(users, project)
     end
     
     def add_active_keys(keys) 
@@ -113,20 +118,94 @@ module GitoliteRedmine
     end
     
     def build_permissions(users, project)
-      write_users = users.select{|user| user.allowed_to?(:commit_access, project) }
       read_users = users.select{|user| user.allowed_to?(:view_changesets, project) && !user.allowed_to?(:commit_access, project) }
-      
-      write = write_users.map{|usr| usr.login.underscore.gsub(/[^0-9a-zA-Z\-\_]/,'_')}.sort
       read = read_users.map{|usr| usr.login.underscore.gsub(/[^0-9a-zA-Z\-\_]/,'_')}.sort
+
+      # Managers
+      role = Role.find_by_name(l(:default_role_manager))
+      logger.debug { "********* Role : #{role}" }
+      manager_users = project.users_by_role[role]
+      logger.debug { "********* Managers : #{manager_users}" }
+      if manager_users
+        manager_users = manager_users.select{ |user| user.allowed_to?( :commit_access, project ) }
+      end
+      
+      # Developers
+      role = Role.find_by_name(l(:default_role_developer))
+      developer_users = project.users_by_role[role]
+      if developer_users
+        developer_users = developer_users.select{ |user| user.allowed_to?( :commit_access, project ) }
+      end
+      
+      # Reporters
+      role = Role.find_by_name(l(:default_role_reporter))
+      reporter_users = project.users_by_role[role]
+      if reporter_users
+        reporter_users = reporter_users.select{ |user| user.allowed_to?( :view_changesets, project ) }
+      end
       
       read << "redmine"
       read << "daemon" if User.anonymous.allowed_to?(:view_changesets, project)
       read << "gitweb" if User.anonymous.allowed_to?(:view_gitweb, project)
       
       permissions = {}
-      permissions["RW+"] = {"" => write} unless write.empty?
-      permissions["R"] = {"" => read} unless read.empty?
+
+      permissions["R"] = {}
+      permissions["RW"] = {}
+      permissions["RW+"] = {}
       
+      permissions["R"][""] = []
+      
+      permissions["RW"][""] = []
+      if project.repository.branch_pattern and project.repository.branch_pattern != ""
+          permissions["RW"][project.repository.branch_pattern] = []
+      end
+      if project.repository.tag_pattern and project.repository.tag_pattern != ""
+          permissions["RW"]["ref/tags/" + project.repository.tag_pattern] = []
+      end
+      
+      permissions["RW+"][""] = []
+      permissions["RW+"]["personal/USER/"] = []
+      
+      permissions["R"][""] += read unless read.empty?
+      
+      if manager_users
+        manager = manager_users.map{|usr| usr.login.underscore}.sort
+        permissions["RW"][""] += manager unless manager.empty?
+        permissions["RW+"]["personal/USER/"] += manager unless manager.empty?
+      end
+      
+      if developer_users
+        developer = developer_users.map{|usr| usr.login.underscore}.sort
+        permissions["R"][""] += developer unless developer.empty?
+        if project.repository.branch_pattern and project.repository.branch_pattern != ""
+          permissions["RW"][project.repository.branch_pattern] += developer unless developer.empty?
+        end
+        if project.repository.tag_pattern and project.repository.tag_pattern != ""
+          permissions["RW"]["ref/tags/" + project.repository.tag_pattern] += developer unless developer.empty?
+        end
+        permissions["RW+"]["personal/USER/"] += developer unless developer.empty?
+      end
+      
+      if reporter_users
+        reporter = reporter_users.map{|usr| usr.login.underscore}.sort
+        permissions["R"][""] += reporter unless reporter.empty?
+        permissions["RW+"]["personal/USER/"] += reporter unless reporter.empty?
+      end
+
+      if project.repository.branch_pattern and project.repository.branch_pattern != ""
+        if permissions["RW"][project.repository.branch_pattern].empty?; permissions["RW"].delete(project.repository.branch_pattern); end
+      end
+      if project.repository.tag_pattern and project.repository.tag_pattern != ""
+        if permissions["RW"]["ref/tags/" + project.repository.tag_pattern].empty?; permissions["RW"].delete("ref/tags/" + project.repository.tag_pattern); end
+      end
+      
+      
+      if permissions["R"][""].empty?; permissions["R"].delete(""); end
+      if permissions["RW"][""].empty?; permissions["RW"].delete(""); end
+      if permissions["RW+"][""].empty?; permissions["RW+"].delete(""); end
+      if permissions["RW+"]["personal/USER/"].empty?; permissions["RW+"].delete("personal/USER/"); end
+
       [permissions]
     end
     
