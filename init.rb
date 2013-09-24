@@ -12,7 +12,7 @@ Redmine::Plugin.register :redmine_gitolite do
   name 'Redmine Gitolite plugin'
   author 'Various Authors'
   description 'Enables Redmine to manage gitolite repositories.'
-  version '0.1.0'
+  version '0.1.1'
 
   requires_redmine :version_or_higher => '2.0.0'
   url 'https://github.com/CtrlC-Root/redmine-gitolite/'
