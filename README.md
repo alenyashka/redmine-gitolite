@@ -100,9 +100,10 @@ Run the gitolite setup command.
     $ gitolite setup
     $ exit
 
-TODO: configure sudo
+TODO: configure sudo, though is this even neccesary?
 
-    $ cp $RMP/contrib/sudo/redmine-gitolite.conf /etc/sudoers.d/
+    $ cp $RMP/contrib/sudo/redmine-gitolite /etc/sudoers.d/
+    $ chmod 0640 /etc/sudoers.d/redmine-gitolite
 
 TODO: what about needing the ssh key to be named 'redmine'??
 
