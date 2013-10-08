@@ -81,7 +81,7 @@ copy the hook from the plugin's contrib folder to the appropriate place.
     $ chown gitolite3:gitolite3 post-receive
     $ chmod a+rx post-receive
 
-Modify the post-receive hook with the generate API key and the redmine server
+Modify the post-receive hook with the generated API key and the redmine server
 url. If your server is using https but you don't have a valid certificate
 (maybe this is a test server) then make sure to set the curl security flag to
 false. Go to the gitolite user's home folder and mofity the RC file to allow
@@ -99,11 +99,6 @@ Run the gitolite setup command.
     $ su - gitolite
     $ gitolite setup
     $ exit
-
-TODO: configure sudo, though is this even neccesary?
-
-    $ cp $RMP/contrib/sudo/redmine-gitolite /etc/sudoers.d/
-    $ chmod 0640 /etc/sudoers.d/redmine-gitolite
 
 TODO: what about needing the ssh key to be named 'redmine'??
 

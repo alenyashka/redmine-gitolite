@@ -1,7 +1,0 @@
-# allow redmine and gitolite3 to run commands as each other
-redmine		ALL=(gitolite3)	NOPASSWD:ALL
-gitolite3	ALL=(redmine)	NOPASSWD:ALL
-
-# don't require a terminal to run sudo
-Defaults:gitolite3 !requiretty
-Defaults:redmine   !requiretty
